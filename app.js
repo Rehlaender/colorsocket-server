@@ -11,6 +11,23 @@ function createDrawing({ connection, name }) {
   .then(() => console.log('created a new drawing with name ', name));
 }
 
+function clearDrawing({ connection, drawingId }) {
+  return r.table('lines')
+  .filter({drawingId})
+  .delete()
+  .run(connection)
+  .then(() => console.log('cleared drawing with this id ', drawingId));
+}
+
+function deleteDrawing({ connection, id }) {
+  return r.table('drawings')
+  .filter({id})
+  .delete()
+  .run(connection)
+  .then(() => console.log('deleted drawing with this id ', id));
+}
+
+
 function subscribeToDrawings({ client, connection }) {
   r.table('drawings')
   .changes({ include_initial: true })
@@ -47,12 +64,22 @@ function subscribeToDrawingLines({ client, connection, drawingId, from }) {
 r.connect({
   host: 'localhost',
   port: 28015,
-  db: 'awesome_whiteboard'
+  db: 'colorsocket'
 }).then((connection) => {
   io.on('connection', (client) => {
     client.on('createDrawing', ({ name }) => {
       createDrawing({ connection, name });
     });
+
+    client.on('clearDrawing', ({ drawingId }) => {
+      clearDrawing({ connection, drawingId });
+    });
+
+    client.on('deleteDrawing', ({ id }) => {
+      console.log('este id', id)
+      deleteDrawing({ connection, id });
+    });
+
 
     client.on('subscribeToDrawings', () => subscribeToDrawings({
       client,
